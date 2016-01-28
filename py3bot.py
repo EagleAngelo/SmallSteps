@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
 
+#irc python 3 bot for windows
+
 import sys
 import socket
 import string
 from threading import Timer
 import random
+import datetime
+import os
+
+#fill in the gaps :D
+#---
 
 HOST = "irc.freenode.net"
 PORT = 6667
 
-#fill in the gaps :D
+NICK = #botNick
+IDENT = #password
+REALNAME = #botNick
+MASTER = #botOwnerNick
+CHANNEL = #channel
+LOGS = "irc_bot_logs"
 
-#NICK = #botNick
-#IDENT = #password
-#REALNAME = #botNick
-#MASTER = #botOwnerNick
-#CHANNEL = "#botTesting"
+#---
 
 readbuffer = ""
 
@@ -26,22 +34,30 @@ s.send(bytes("NICK "+ NICK + "\r\n", "UTF-8"));
 s.send(bytes("USER "+ IDENT + " " + HOST + " " + REALNAME + ":This is a bot thingy \r\n", "UTF-8"));
 s.send(bytes("JOIN "+ CHANNEL + "\r\n", "UTF-8"));
 
-s.send(bytes("PRIVMSG %s :Hello, testing 1 2 3\r\n" % MASTER, "UTF-8"))
+s.send(bytes("PRIVMSG " + MASTER + " :Hi Princess!\r\n", "UTF-8"))
 
 def tell(sender,recipient,message):
     s.send(bytes("PRIVMSG "+ recipient + " :" + sender + " sent you a message: " + message + "\r\n", "UTF-8"))
 
-while 1:
+try:
+    os.makedirs(LOGS)
+except OSError:
+    if not os.path.isdir(LOGS):
+        raise
+
+while 1:    
     readbuffer = readbuffer+s.recv(512).decode("UTF-8")
+    #the \\ is for windows directories
+    with open(LOGS + "\\" + str(datetime.date.today())+".dat","a+") as f:
+        f.write(str(datetime.datetime.now()) + " "+ readbuffer)
     temp = str.split(readbuffer, "\n")
     readbuffer=temp.pop( )
-
     for line in temp:
         line = str.rstrip(line)
         line = str.split(line)
 
         if(line[0] == "PING"):
-            s.send(bytes("PONG %s\r\n" % line[1], "UTF-8"))
+            s.send(bytes("PONG " + line[1] + "\r\n", "UTF-8"))
 
         if(line[1] == "PRIVMSG"):
         
@@ -52,11 +68,20 @@ while 1:
                 s.send(bytes("PRIVMSG "+ sender + " :" + message + "\r\n", "UTF-8"))
             elif(line [3] == ":!quit" and len(line) == 4):
                 if (sender == MASTER or sender == MASTER2):
-                    s.send(bytes("QUIT %s\r\n", "UTF-8"))
+                    s.send(bytes("QUIT\r\n", "UTF-8"))
+                    sys.exit()
             elif(line [3] == ":!poke" and len(line) == 4):
-                s.send(bytes("PRIVMSG "+ sender + " : \r\n", "UTF-8"))
+                s.send(bytes("PRIVMSG "+ CHANNEL + " : \r\n", "UTF-8"))
             elif(line [3] == ":!roll20" and len(line) == 4):
                 s.send(bytes("PRIVMSG "+ CHANNEL + " :" + str(random.randrange(1,20))+ "\r\n", "UTF-8"))
+            elif(line [3] == ":!say" and len(line) >= 4):
+                message = ''
+                j = 4
+                while j < len(line):
+                    message += line[j]
+                    message += ' '
+                    j += 1
+                s.send(bytes("PRIVMSG "+ CHANNEL + " :" + message + "\r\n", "UTF-8"))
             elif(line [3] == ":!gauss100" and len(line) == 4):
                 j = 0
                 mean = 0.0
