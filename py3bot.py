@@ -20,6 +20,7 @@ NICK = #botNick
 IDENT = #password
 REALNAME = #botNick
 MASTER = #botOwnerNick
+MASTER2 = #botOwnerNick
 CHANNEL = #channel
 LOGS = "irc_bot_logs"
 
