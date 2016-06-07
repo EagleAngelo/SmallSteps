@@ -21,7 +21,7 @@ IDENT = #password
 REALNAME = #botNick
 MASTER = #botOwnerNick
 CHANNEL = #channel
-LOGS = "irc_bot_logs" #Linux users check this
+LOGS = "C:\irc_bot_logs" #Linux users check this
 
 #CHANNEL = "#PBSIdeaChannel"
 CHANNEL = "#botTesting"
