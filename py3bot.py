@@ -38,7 +38,7 @@ s.send(bytes("NICK "+ NICK + "\r\n", "UTF-8"));
 s.send(bytes("USER "+ IDENT + " " + HOST + " " + REALNAME + ":This is a bot thingy \r\n", "UTF-8"));
 s.send(bytes("JOIN "+ CHANNEL + "\r\n", "UTF-8"));
 
-s.send(bytes("PRIVMSG " + MASTER + " :Hi Princess!\r\n", "UTF-8"))
+s.send(bytes("PRIVMSG " + MASTER + " :Hi Master!\r\n", "UTF-8"))
 
 try:
     os.makedirs(LOGS)
