@@ -20,9 +20,11 @@ NICK = #botNick
 IDENT = #password
 REALNAME = #botNick
 MASTER = #botOwnerNick
-MASTER2 = #botOwnerNick
 CHANNEL = #channel
 LOGS = "irc_bot_logs"
+
+#CHANNEL = "#PBSIdeaChannel"
+CHANNEL = "#botTesting"
 
 #---
 
@@ -39,6 +41,9 @@ s.send(bytes("PRIVMSG " + MASTER + " :Hi Princess!\r\n", "UTF-8"))
 
 def tell(sender,recipient,message):
     s.send(bytes("PRIVMSG "+ recipient + " :" + sender + " sent you a message: " + message + "\r\n", "UTF-8"))
+
+def msgSelf(sender,message):
+    s.send(bytes("PRIVMSG "+ sender + " :" + message + "\r\n", "UTF-8"))
 
 try:
     os.makedirs(LOGS)
@@ -64,11 +69,18 @@ while 1:
         
             sender = line[0][1:line[0].find('!')]
             
-            if(line[3] == ":!msgMe" and len(line) == 4):
+            if(line[3] == ":!msgMe" and len(line) >= 4):
                 message = "OH HAI!"
-                s.send(bytes("PRIVMSG "+ sender + " :" + message + "\r\n", "UTF-8"))
-            elif(line [3] == ":!quit" and len(line) == 4):
-                if (sender == MASTER or sender == MASTER2):
+                if(len(line) > 4):
+                    message = ''
+                    j = 4
+                    while j < len(line):
+                        message += line[j]
+                        message += ' '
+                        j += 1
+                msgSelf(sender,message)
+            elif(line [3] == ":!quitNao" and len(line) == 4):
+                if(sender == MASTER or sender == MASTER2):
                     s.send(bytes("QUIT\r\n", "UTF-8"))
                     sys.exit()
             elif(line [3] == ":!poke" and len(line) == 4):
@@ -120,3 +132,4 @@ while 1:
                     s.send(bytes("PRIVMSG "+ CHANNEL + " :syntax -> !tell Nick delay(seconds) message1 message2 etc\r\n", "UTF-8"))
         for index, i in enumerate(line):
             print(line[index],index,len(line))
+            
