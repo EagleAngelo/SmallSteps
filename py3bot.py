@@ -21,10 +21,11 @@ IDENT = #password
 REALNAME = #botNick
 MASTER = #botOwnerNick
 CHANNEL = #channel
-LOGS = "irc_bot_logs"
+LOGS = "irc_bot_logs" #Linux users check this
 
 #CHANNEL = "#PBSIdeaChannel"
 CHANNEL = "#botTesting"
+
 
 #---
 
@@ -39,24 +40,25 @@ s.send(bytes("JOIN "+ CHANNEL + "\r\n", "UTF-8"));
 
 s.send(bytes("PRIVMSG " + MASTER + " :Hi Princess!\r\n", "UTF-8"))
 
-def tell(sender,recipient,message):
-    s.send(bytes("PRIVMSG "+ recipient + " :" + sender + " sent you a message: " + message + "\r\n", "UTF-8"))
-
-def msgSelf(sender,message):
-    s.send(bytes("PRIVMSG "+ sender + " :" + message + "\r\n", "UTF-8"))
-
 try:
     os.makedirs(LOGS)
 except OSError:
     if not os.path.isdir(LOGS):
         raise
 
+def tell(sender,recipient,message):
+    s.send(bytes("PRIVMSG "+ recipient + " :" + sender + " sent you a message: " + message + "\r\n", "UTF-8"))
+
+def msgSelf(sender,message):
+    s.send(bytes("PRIVMSG "+ sender + " :" + message + "\r\n", "UTF-8"))
+
 while 1:    
     readbuffer = readbuffer+s.recv(512).decode("UTF-8")
-    #the \\ is for windows directories
+    #be sure to check your log dir if using linux
     with open(LOGS + "\\" + str(datetime.date.today())+".dat","a+") as f:
         f.write(str(datetime.datetime.now()) + " "+ readbuffer)
     temp = str.split(readbuffer, "\n")
+    
     readbuffer=temp.pop( )
     for line in temp:
         line = str.rstrip(line)
