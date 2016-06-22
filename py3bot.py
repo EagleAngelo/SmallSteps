@@ -10,6 +10,7 @@ from threading import Timer
 import random
 import datetime
 import os
+import time
 
 #fill in the gaps :D
 #---
@@ -23,16 +24,15 @@ REALNAME = #botNick
 MASTER = #botOwnerNick
 MASTAH = #botOwnerNick2
 CHANNEL = #channel
-LOGS = "C:\irc_bot_logs" #Linux users check this
+LOGS = "C:\irc_bot_logs" #Linux users correct this
 
-#CHANNEL = "#PBSIdeaChannel"
 CHANNEL = "#botTesting"
 
 #---
 
 class IRCbot():
     def __init__(self):
-        self.commands = []
+        self.command1 = []
         self.readbuffer = ""
         self.s = None
         self.host1 = ""
@@ -67,18 +67,24 @@ class IRCbot():
     def logFolder(self):
         try:
             os.makedirs(self.logs1)
-        except OSError:
+        exce``pt OSError:
             if not os.path.isdir(self.logs1):
                 raise
         
     def reg_command(self,command):
         self.commands.append(command)
-        
-    def tell(self,sender,recipient,message):
-        self.s.send(bytes("PRIVMSG "+ recipient + " :" + sender + " sent you a message: " + message + "\r\n", "UTF-8"))
+    
+    def commandCheck(self, command):
+        for command2 in this.command1:
+            if(command == command2):
+                return
+                
+    
+    def tell(self,sender,recipient,message,time):
+        self.s.send(bytes("PRIVMSG "+ recipient + " :" + sender + " sent you a message at " + time + ": " + message + "\r\n", "UTF-8"))
 
-    def msgSelf(self,sender,message):
-        self.s.send(bytes("PRIVMSG "+ sender + " :" + message + "\r\n", "UTF-8"))
+    def msg(self,sender,recipient,message):
+        self.s.send(bytes("PRIVMSG "+ recipient + " :" + sender + " says: " + message + "\r\n", "UTF-8"))
 
 bot = IRCbot()
 bot.setBot(HOST,PORT,NICK,IDENT,REALNAME,MASTER,MASTAH,LOGS,CHANNEL)
@@ -114,7 +120,16 @@ while 1:
                         message += line[j]
                         message += ' '
                         j += 1
-                bot.msgSelf(sender,message)
+                bot.msg(sender,sender,message)
+            if(line[3] == ":!msg" and len(line) > 4):
+                message = ''
+                recipient = line[4]
+                j = 5
+                while j < len(line):
+                    message += line[j]
+                    message += ' '
+                    j += 1
+                bot.msg(sender,recipient,message)
             elif(line [3] == ":!quitNao" and len(line) == 4):
                 if(sender == bot.master1 or sender == bot.mastah1):
                     bot.s.send(bytes("QUIT\r\n", "UTF-8"))
@@ -160,12 +175,15 @@ while 1:
                     j += 1
                 try:
                     delaySec = float(delaySec)
-                    t = Timer(delaySec, bot.tell,[sender,recipient,message])
+                    time = time.strftime("%c")
+                    t = Timer(delaySec, bot.tell,[sender,recipient,message,time])
                     t.start();
                 except ValueError:
                     bot.s.send(bytes("PRIVMSG "+ bot.channel1 + " :syntax -> !tell Nick delay(seconds) message1 message2 etc\r\n", "UTF-8"))
                 except IndexError:
                     bot.s.send(bytes("PRIVMSG "+ bot.channel1 + " :syntax -> !tell Nick delay(seconds) message1 message2 etc\r\n", "UTF-8"))
+            else:
+                bot.s.send(bytes("PRIVMSG "+ bot.channel1 + " :command not recognized\r\n", "UTF-8"))
         for index, i in enumerate(line):
             print(line[index],index,len(line))
             
