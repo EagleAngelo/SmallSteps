@@ -18,13 +18,13 @@ import time
 HOST = "irc.freenode.net"
 PORT = 6667
 
-NICK = "Oka_Nieba"
-IDENT = "guttenMorgen"
-REALNAME = "Oka_Nieba"
-MASTER = "EagleAngelo"
-MASTAH = "tanzensally"
-LOGS = "C:\irc_bot_logs"
-PRESETS = "."
+NICK = #botNick
+IDENT = #password
+REALNAME = #botNick
+MASTER = #botOwnerNick
+MASTAH = #botOwnerNick2
+CHANNEL = #channel
+LOGS = "C:\irc_bot_logs" #Linux users correct this
 
 #CHANNEL = "#PBSIdeaChannel"
 CHANNEL = "#botTesting"
