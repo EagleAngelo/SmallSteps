@@ -12,6 +12,8 @@ import random
 import datetime
 import os
 import time
+import re
+import urllib
 
 #fill in the gaps :D
 #---
@@ -121,91 +123,138 @@ class IRCbot():
 
                 if(line[0] == "PING"):
                     self.s.send(bytes("PONG " + line[1] + "\r\n"))
-                    print("SERVER PONG\r")
-                    
-                if(line[1] == "PRIVMSG" and line[3].find(':!') != -1):
+                    print("\nSERVER PONG\r")
                 
-                    sender = line[0][1:line[0].find('!')]
+                if(line[1] == "PRIVMSG"):
+                
+                    line[3] = line[3][1:]
                     
-                    if(line[3] == ":!msgMe" and len(line) >= 4):
-                        message = "OH HAI!"
-                        if(len(line) > 4):
+                    for url in line:
+                        if url.startswith("http") or url.startswith("www"):
+                        
+                            sock = urllib.urlopen(url)
+                            urlSource = sock.read()
+                            sock.close()
+                            
+                            if url.startswith("https://www.youtube.com/"):
+                                urlContent = re.search("<title>(.*?)</title>",urlSource,re.IGNORECASE)
+                                
+                                if urlContent:
+                                    print(urlContent.group(1)+"\r\n")
+                                    self.s.send(bytes("PRIVMSG "+ self.channel1 + " :" + urlContent.group(1) + "\r\n"))
+                                    
+                            elif url.startswith("https://youtu.be/"):
+                                urlContent = re.search("<title>(.*?)</title>",urlSource,re.IGNORECASE)
+                                
+                                if urlContent:
+                                    print(urlContent.group(1)+"\r\n")
+                                    self.s.send(bytes("PRIVMSG "+ self.channel1 + " :" + urlContent.group(1) + "\r\n"))
+                                
+                            else:
+                            
+                                urlContent = re.search("<meta name=\"keywords\" content=\"(.*?)\">",urlSource,re.IGNORECASE)
+                                
+                                if type(urlContent) == None:
+                                    urlContent = re.search("<meta content=\"(.*?)\">",urlSource,re.IGNORECASE)
+                                
+                                if urlContent:
+                                    print(urlContent.group(1)+"\r\n")
+                                    self.s.send(bytes("PRIVMSG "+ self.channel1 + " :" + urlContent.group(1) + "\r\n"))
+
+                    if(line[3].startswith('!')):
+                    
+                        sender = line[0][1:line[0].find('!')]
+                                
+                        if(line[3] == "!msgMe" and len(line) >= 4):
+                            message = "OH HAI!"
+                            if(len(line) > 4):
+                                message = ''
+                                j = 4
+                                while j < len(line):
+                                    message += line[j]
+                                    message += ' '
+                                    j += 1
+                            self.msg(sender,sender,message)
+                            
+                        elif(line[3] == "!msg" and len(line) > 4):
+                            message = ''
+                            recipient = line[4]
+                            j = 5
+                            while j < len(line):
+                                message += line[j]
+                                message += ' '
+                                j += 1
+                            self.msg(sender,recipient,message)
+                            
+                        elif(line [3] == "!quitNao" and len(line) == 4):
+                            if(sender == self.master1 or sender == self.mastah1):
+                                self.s.send(bytes("QUIT\r\n"))
+                                sys.exit()
+                                
+                        elif(line [3] == "!poke" and len(line) == 4):
+                            self.s.send(bytes("PRIVMSG "+ self.channel1 + " : \r\n"))
+                            
+                        elif(line [3] == "!roll20" and len(line) == 4):
+                            self.s.send(bytes("PRIVMSG "+ self.channel1 + " :" + str(random.randrange(1,20))+ "\r\n"))
+                        
+                        elif(line [3] == "!say" and len(line) >= 4):
                             message = ''
                             j = 4
                             while j < len(line):
                                 message += line[j]
                                 message += ' '
                                 j += 1
-                        self.msg(sender,sender,message)
-                    elif(line[3] == ":!msg" and len(line) > 4):
-                        message = ''
-                        recipient = line[4]
-                        j = 5
-                        while j < len(line):
-                            message += line[j]
-                            message += ' '
-                            j += 1
-                        self.msg(sender,recipient,message)
-                    elif(line [3] == ":!quitNao" and len(line) == 4):
-                        if(sender == self.master1 or sender == self.mastah1):
-                            self.s.send(bytes("QUIT\r\n"))
-                            sys.exit()
-                    elif(line [3] == ":!poke" and len(line) == 4):
-                        self.s.send(bytes("PRIVMSG "+ self.channel1 + " : \r\n"))
-                    elif(line [3] == ":!roll20" and len(line) == 4):
-                        self.s.send(bytes("PRIVMSG "+ self.channel1 + " :" + str(random.randrange(1,20))+ "\r\n"))
-                    elif(line [3] == ":!say" and len(line) >= 4):
-                        message = ''
-                        j = 4
-                        while j < len(line):
-                            message += line[j]
-                            message += ' '
-                            j += 1
+                            
+                            self.s.send(bytes("PRIVMSG "+ self.channel1 + " :" + message + "\r\n"))
                         
-                        self.s.send(bytes("PRIVMSG "+ self.channel1 + " :" + message + "\r\n"))
-                    elif(line [3] == ":!gauss100" and len(line) == 4):
-                        j = 0
-                        mean = 0.0
-                        rand = []
-                        while j < 10000:
-                            rand.append(random.randrange(1,100))
-                            mean += rand[j]
-                            j += 1
-                        mean = mean / float(len(rand))
-                        stdDev = 0.0
-                        for eachN in rand:
-                            stdDev += (float(eachN) - mean)**2
-                        stdDev = (stdDev / float(len(rand)))**(1/2)
-                        self.s.send(bytes("PRIVMSG "+ self.channel1 + " : Number: " + str(rand[50]) + " ArraySize: " + str(len(rand)) + " Mean: " + str(mean) + ". StdDev: " + str(stdDev) + "\r\n"))
-                    elif(line [3] == ":!flip" and len(line) == 4):
-                        self.s.send(bytes("PRIVMSG "+ self.channel1 + " : (╯°□°)╯︵ ┻━┻\r\n"))
-                    elif(line [3] == ":!ping" and len(line) == 4):
-                        self.s.send(bytes("PRIVMSG "+ self.channel1 + " : PONG!!! ┬─┬°o(^_^o)\r\n"))
-                    elif(line[3] == ":!tell" and len(line) >= 7):
-                        recipient = line[4]
-                        delaySec = line[5]
-                        message = ''
-                        j = 6
-                        while j < len(line):
-                            message += line[j]
-                            message += ' '
-                            j += 1
-                        try:
-                            delaySec = float(delaySec)
-                            time = time.strftime("%c")
-                            t = Timer(delaySec, self.tell,[sender,recipient,message,time])
-                            t.start();
-                        except ValueError:
-                            self.s.send(bytes("PRIVMSG "+ self.channel1 + " : Syntax -> !tell Nick delay(seconds) message1 message2 etc\r\n"))
-                        except IndexError:
-                            self.s.send(bytes("PRIVMSG "+ self.channel1 + " : Syntax -> !tell Nick delay(seconds) message1 message2 etc\r\n"))
-                    else:
-                        self.s.send(bytes("PRIVMSG "+ self.channel1 + " : Command not recognized\r\n"))
-                
+                        elif(line [3] == ":!gauss100" and len(line) == 4):
+                            j = 0
+                            mean = 0.0
+                            rand = []
+                            while j < 10000:
+                                rand.append(random.randrange(1,100))
+                                mean += rand[j]
+                                j += 1
+                            mean = mean / float(len(rand))
+                            stdDev = 0.0
+                            for eachN in rand:
+                                stdDev += (float(eachN) - mean)**2
+                            stdDev = (stdDev / float(len(rand)))**(1/2)
+                            self.s.send(bytes("PRIVMSG "+ self.channel1 + " : Number: " + str(rand[50]) + " ArraySize: " + str(len(rand)) + " Mean: " + str(mean) + ". StdDev: " + str(stdDev) + "\r\n"))
+                        
+                        elif(line [3] == "!flip" and len(line) == 4):
+                            self.s.send(bytes("PRIVMSG "+ self.channel1 + " : (╯°□°)╯︵ ┻━┻\r\n"))
+                        
+                        elif(line[3] == "!ping" and len(line) == 4):
+                            self.s.send(bytes("PRIVMSG "+ self.channel1 + " : PONG!!! ┬─┬°o(^_^o)\r\n"))
+                        
+                        elif(line[3] == "!tell" and len(line) >= 7):
+                            recipient = line[4]
+                            delaySec = line[5]
+                            message = ''
+                            j = 6
+                            while j < len(line):
+                                message += line[j]
+                                message += ' '
+                                j += 1
+                            try:
+                                delaySec = float(delaySec)
+                                time = time.strftime("%c")
+                                t = Timer(delaySec, self.tell,[sender,recipient,message,time])
+                                t.start();
+                            except ValueError:
+                                self.s.send(bytes("PRIVMSG "+ self.channel1 + " : Syntax -> !tell Nick delay(seconds) message1 message2 etc\r\n"))
+                            except IndexError:
+                                self.s.send(bytes("PRIVMSG "+ self.channel1 + " : Syntax -> !tell Nick delay(seconds) message1 message2 etc\r\n"))                    
+                        
+                        else:
+                            self.s.send(bytes("PRIVMSG "+ self.channel1 + " : Command not recognized\r\n"))
+                            
                 print("\n")
                 print(str(msgText) + "\r")
                 for index, i in enumerate(line):
                     print(str(line[index]) +" "+ str(index) +" "+ str(len(line)) +" "+ "\r")
+                    
             
 bot = IRCbot()
 bot.setBot(HOST,PORT,NICK,IDENT,REALNAME,MASTER,MASTAH,LOGS,CHANNEL)
