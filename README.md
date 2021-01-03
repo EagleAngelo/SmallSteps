@@ -1,1 +1,2 @@
 # SmallSteps
+Hi. Welcome :)
